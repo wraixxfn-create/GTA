@@ -24,3 +24,11 @@
   .inspector-legend{display:grid;gap:8px;font-size:7px;margin-top:auto;padding-top:12px}
   .hover-right{font-size:7px}
 }
+/* Downtown district cues and the live navigation-layer toggle. */
+.district-state{flex:none;color:#829a90;font:8px 'DM Mono',monospace;letter-spacing:.05em}
+.district-row[data-district="downtown"] .district-state{color:#a8c796}
+.district-row.is-active .district-state{color:#ffdcaa}
+.tool-button.is-on{border-color:rgba(174,211,154,.62);background:rgba(44,76,58,.86)}
+.tool-button.is-on small{color:#c8e2ae}
+#city-status{color:#c7d5bd}
+@media(max-width:780px){.district-state,#city-status{display:none}}
