@@ -1,0 +1,25 @@
+{
+  "name": "morrow-reach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "test": "tsx --test tests/*.test.ts",
+    "verify:world": "tsx scripts/verify-world.ts"
+  },
+  "dependencies": {
+    "@fontsource/dm-mono": "^5.3.0",
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/outfit": "^5.3.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/three": "^0.180.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  }
+}
