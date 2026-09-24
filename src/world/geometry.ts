@@ -208,8 +208,40 @@ export function isReservedBuiltArea(x: number, z: number): boolean {
   return DISTRICTS.some(d => d.kind !== 'landscape' && pointInPolygon(x,z,d.polygon));
 }
 
+/**
+ * The one district that is actually built. Regional routes are drawn by the streaming
+ * sectors everywhere else; inside downtown the district owns its own streets (the same
+ * alignments, carried through as legacy streets), so the foundation ribbons stop at the
+ * city limit instead of running under the graded pad.
+ */
+const CONSTRUCTED_POLYGON = DISTRICTS.find(d => d.id === 'downtown')!.polygon;
+export function isConstructedDowntown(x: number, z: number): boolean {
+  return pointInPolygon(x, z, CONSTRUCTED_POLYGON);
+}
+
 export function marshInfluence(x: number, z: number): number {
   return gaussian(x,z,6090,640,1450,1040);
+}
+
+/**
+ * Grading weight of the constructed downtown (0 → untouched terrain, 1 → fully graded
+ * city floor). The built district needs a continuous pad for streets, sidewalks and
+ * building platforms, so high-frequency relief is *removed* inside its footprint and
+ * blended out over 420 m at the edge. Long-wavelength relief is kept, which is why the
+ * floor still tilts gently towards the bay instead of becoming a flat plate.
+ */
+export function cityFloorWeight(x: number, z: number): number {
+  const d = CITY_FLOOR_DISTANCE(x, z);
+  return smoothstep(-140, 280, d);
+}
+const DOWNTOWN_POLYGON = DISTRICTS.find(d => d.id === 'downtown')!.polygon;
+function CITY_FLOOR_DISTANCE(x: number, z: number): number {
+  let nearest = Infinity;
+  for (let i = 0; i < DOWNTOWN_POLYGON.length; i++) {
+    const a = DOWNTOWN_POLYGON[i], b = DOWNTOWN_POLYGON[(i + 1) % DOWNTOWN_POLYGON.length];
+    nearest = Math.min(nearest, segmentDistance(x, z, a, b).distance);
+  }
+  return pointInPolygon(x, z, DOWNTOWN_POLYGON) ? nearest : -nearest;
 }
 
 export type TerrainSample = { height: number; coast: number; river: RiverProximity; lake: number; marsh: number };
@@ -223,7 +255,10 @@ export function terrainSample(x: number, z: number): TerrainSample {
 
   const inland=smoothstep(0,130,coast);
   let h=(6 + 35*(1-Math.exp(-coast/670)))*inland;
-  h+=inland*(12*(noise(x/1330,z/1330)-.5)+6*(noise(x/370,z/370)-.5)+1.8*(noise(x/105,z/105)-.5));
+  // Inside the built downtown the fine relief is graded away (see cityFloorWeight).
+  const cityFloor=cityFloorWeight(x,z), fineRelief=1-.94*cityFloor;
+  h+=inland*(12*(noise(x/1330,z/1330)-.5)+fineRelief*(6*(noise(x/370,z/370)-.5)+1.8*(noise(x/105,z/105)-.5)));
+  h+=.85*cityFloor;
   h+=inland*(
     565*gaussian(x,z,-2960,-5230,1180,950) +
     625*gaussian(x,z,-1260,-5750,990,760) +

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { WORLD, type RoadClass } from '../world/data';
 import {
-  forestDensity, isReservedBuiltArea, nearestRiver,
+  forestDensity, isConstructedDowntown, isReservedBuiltArea, nearestRiver,
   sectorAt, sectorKey, terrainColor, terrainSample,
 } from '../world/geometry';
 import { SAMPLED_ROADS, type RoadSample, type SampledRoad } from '../world/roads';
@@ -147,6 +147,8 @@ function addRoads(group:THREE.Group,ix:number,iz:number,owned:THREE.BufferGeomet
   const surface=makeBuffer(true),shoulder=makeBuffer(),markings=makeBuffer(),rails=makeBuffer();
   const piers:{x:number;y:number;z:number;height:number}[]=[];
   for(const {road,a,b,index} of roadBySector.get(sectorKey(ix,iz))??[]) {
+    // Both ends inside downtown: the district draws this alignment itself, at pad height.
+    if(isConstructedDowntown(a.x,a.z)&&isConstructedDowntown(b.x,b.z)) continue;
     const bridge=!!road.road.bridge;
     quadAlong(a,b,road.width+9,-.48,shoulder);
     quadAlong(a,b,road.width,0,surface,roadColors[road.road.type]);
