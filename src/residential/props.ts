@@ -112,7 +112,7 @@ for (const ground of GROUNDS) {
     case 'lawn':
       if (hash01(Math.round(centre.x), 7, 31) < 0.3) place('tree-round', centre.x, centre.z, 0, 1.1, 0.4);
       break;
-    case 'park': case 'kickabout':
+    case 'park':
       break;
     case 'plaza':
       place('planter', centre.x - 5, centre.z, 0, 1, 0.5);
