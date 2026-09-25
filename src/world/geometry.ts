@@ -216,14 +216,23 @@ export function isReservedBuiltArea(x: number, z: number): boolean {
  */
 const CONSTRUCTED_POLYGON = DISTRICTS.find(d => d.id === 'downtown')!.polygon;
 const CONSTRUCTED_INDUSTRIAL_POLYGON = DISTRICTS.find(d => d.id === 'industrial')!.polygon;
+const CONSTRUCTED_WEALTHY_POLYGON = DISTRICTS.find(d => d.id === 'wealthy')!.polygon;
 export function isConstructedDowntown(x: number, z: number): boolean {
   return pointInPolygon(x, z, CONSTRUCTED_POLYGON);
 }
 export function isConstructedIndustrial(x: number, z: number): boolean {
   return pointInPolygon(x, z, CONSTRUCTED_INDUSTRIAL_POLYGON);
 }
+/**
+ * The hillside district owns its own roads too, but unlike the other two it is *not* graded:
+ * its datum is the natural terrain (see `src/wealthy/frame.ts`), so the carried-through
+ * regional alignments meet their continuations outside the limit without a step.
+ */
+export function isConstructedWealthy(x: number, z: number): boolean {
+  return pointInPolygon(x, z, CONSTRUCTED_WEALTHY_POLYGON);
+}
 export function isConstructedDistrict(x: number, z: number): boolean {
-  return isConstructedDowntown(x, z) || isConstructedIndustrial(x, z);
+  return isConstructedDowntown(x, z) || isConstructedIndustrial(x, z) || isConstructedWealthy(x, z);
 }
 
 export function marshInfluence(x: number, z: number): number {

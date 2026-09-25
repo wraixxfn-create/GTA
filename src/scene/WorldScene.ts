@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { DISTRICTS, LAKE, WORLD, type District, type Point } from '../world/data';
+import { DISTRICTS, LAKE, WORLD, isBuiltDistrictId, type District, type Point } from '../world/data';
 import {
   COASTS, RIVER_CURVE, clamp, distance, lakeRadius, riverHalfWidth,
   riverLevel, sectorKey, sectorsNear, terrainHeight,
@@ -8,8 +8,9 @@ import {
 import { buildSector, createDistantTerrain, type ActiveSector } from './sector';
 import { CityLayer, type ChunkStats } from './CityLayer';
 import { IndustrialLayer } from './IndustrialLayer';
+import { WealthyLayer } from './WealthyLayer';
 
-export type SceneStats = {loaded:number;wanted:number;coordinate:Point;altitude:number;distance:number;downtown?:ChunkStats;industrial?:ChunkStats};
+export type SceneStats = {loaded:number;wanted:number;coordinate:Point;altitude:number;distance:number;downtown?:ChunkStats;industrial?:ChunkStats;wealthy?:ChunkStats};
 type Flight = {start:number;duration:number;fromTarget:THREE.Vector3;toTarget:THREE.Vector3;fromCamera:THREE.Vector3;toCamera:THREE.Vector3};
 
 function makeWaterMesh():THREE.Mesh {
@@ -87,7 +88,7 @@ function makeBoundary(district:District):THREE.Line {
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
   const material=new THREE.LineDashedMaterial({color:district.color,transparent:true,opacity:.62,dashSize:72,gapSize:56,depthTest:false});
   const line=new THREE.Line(geometry,material);line.computeLineDistances();
-  line.renderOrder=8;line.name=`${district.id==='downtown'||district.id==='industrial'?'Built':'Reserved'}: ${district.name}`;return line;
+  line.renderOrder=8;line.name=`${isBuiltDistrictId(district.id)?'Built':'Reserved'}: ${district.name}`;return line;
 }
 
 export class WorldScene {
@@ -102,6 +103,7 @@ export class WorldScene {
   onMove?: (point:Point)=>void;
   readonly city=new CityLayer();
   readonly industrial=new IndustrialLayer();
+  readonly wealthy=new WealthyLayer();
   private readonly active=new Map<string,ActiveSector>();
   private readonly boundaryGroup=new THREE.Group();
   private readonly boundaryLines=new Map<string,THREE.Line>();
@@ -156,6 +158,7 @@ export class WorldScene {
     this.scene.add(makeRiver(),makeLake(),makeCoastFoam());
     this.scene.add(this.city.group);
     this.scene.add(this.industrial.group);
+    this.scene.add(this.wealthy.group);
     for(const district of DISTRICTS) {
       const line=makeBoundary(district);this.boundaryGroup.add(line);this.boundaryLines.set(district.id,line);
       const label=document.createElement('button');
@@ -209,8 +212,8 @@ export class WorldScene {
     this.labelLayer.classList.toggle('is-hidden',!visible);
   }
   getBoundaries(){return this.boundariesVisible;}
-  setNavigation(visible:boolean){this.city.setNavigation(visible);this.industrial.setNavigation(visible);}
-  getNavigation(){return this.city.getNavigation()||this.industrial.getNavigation();}
+  setNavigation(visible:boolean){this.city.setNavigation(visible);this.industrial.setNavigation(visible);this.wealthy.setNavigation(visible);}
+  getNavigation(){return this.city.getNavigation()||this.industrial.getNavigation()||this.wealthy.getNavigation();}
   setPaused(paused:boolean){this.paused=paused;}
 
   focus(point:Point,zoom=3200) {
@@ -267,16 +270,18 @@ export class WorldScene {
     }
     if(now-this.lastStats>380) {
       this.lastStats=now;
-      this.onStats?.({loaded:this.active.size,wanted:wanted.length,coordinate:{x:target.x,z:target.z},altitude:Math.max(0,terrainHeight(target.x,target.z)),distance,downtown:this.city.stats,industrial:this.industrial.stats});
+      this.onStats?.({loaded:this.active.size,wanted:wanted.length,coordinate:{x:target.x,z:target.z},altitude:Math.max(0,terrainHeight(target.x,target.z)),distance,downtown:this.city.stats,industrial:this.industrial.stats,wealthy:this.wealthy.stats});
     }
   }
 
   /** The built districts stream on their own 500 m tiles, in a separate budget from
-   * the terrain; the flats also animate their fleet every frame. */
+   * the terrain; the flats and the bluff also animate their fleets every frame. */
   private updateCity(now:number,dt:number) {
     this.city.update(this.controls.target,now,7);
     this.industrial.update(this.controls.target,now,7);
     this.industrial.updateTraffic(dt);
+    this.wealthy.update(this.controls.target,now,7);
+    this.wealthy.updateTraffic(dt);
   }
 
   private updateLabels() {

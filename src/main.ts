@@ -7,7 +7,7 @@ import '@fontsource/dm-sans/latin-500.css';
 import '@fontsource/dm-sans/latin-600.css';
 import '@fontsource/dm-mono/latin-400.css';
 import '@fontsource/dm-mono/latin-500.css';
-import { DISTRICTS, type District } from './world/data';
+import { DISTRICTS, isBuiltDistrictId, type District } from './world/data';
 import { polygonArea, terrainHeight } from './world/geometry';
 import { WorldScene } from './scene/WorldScene';
 import { Atlas } from './ui/atlas';
@@ -54,7 +54,7 @@ $('#app').innerHTML=`
       </div>
       <div class="sidebar-section-heading"><span>DISTRICT STATUS</span><span class="heading-count">02 BUILT / 10 RESERVED</span></div>
       <div id="district-list" class="district-list" role="list" aria-label="Built and reserved districts"></div>
-      <div class="sidebar-note"><span class="note-symbol">◌</span><span>Downtown and the Industrial Flats are built and streaming.<br>The other 10 districts remain reserved.</span></div>
+      <div class="sidebar-note"><span class="note-symbol">◌</span><span>Downtown, the Industrial Flats and the Hillside are built and streaming.<br>The other 9 districts remain reserved.</span></div>
     </aside>
 
     <div class="right-panel">
@@ -73,7 +73,7 @@ $('#app').innerHTML=`
     <div id="atlas-overlay" class="atlas-overlay" role="dialog" aria-modal="true" aria-labelledby="atlas-heading" aria-hidden="true">
       <header class="atlas-topbar"><div><div class="atlas-kicker">MORROW REACH <span>/</span> DISTRICT SURVEY 02</div><h2 id="atlas-heading">The regional atlas<span>.</span></h2></div><button id="close-atlas" class="atlas-close" aria-label="Close atlas">${icon.close}<span>CLOSE MAP</span><kbd>ESC</kbd></button></header>
       <div class="atlas-body"><div class="atlas-map-frame"><div class="atlas-map-corner atlas-map-corner--tl"></div><div class="atlas-map-corner atlas-map-corner--tr"></div><div class="atlas-map-corner atlas-map-corner--bl"></div><div class="atlas-map-corner atlas-map-corner--br"></div><canvas id="atlas-map" aria-label="Click any reserved footprint to inspect and focus that location"></canvas><div class="atlas-compass">N <span>↑</span></div><div class="atlas-map-caption"><span>COASTLINE · RELIEF · TRANSPORT</span><span>18 KM E–W / 14 KM N–S</span></div></div>
-      <aside class="atlas-inspector"><div class="inspector-index">SURVEY INDEX / 001—012</div><h3>Land first.<br><em>Everything follows.</em></h3><p>Downtown is built and streaming. The other eleven district footprints remain reserved for future work.</p><div class="atlas-hover" id="atlas-hover">HOVER A FOOTPRINT TO INSPECT</div><div class="inspector-divider"></div><div class="inspector-selected" id="inspector-selected"></div><button class="inspect-action" id="atlas-explore">EXPLORE THIS AREA ${icon.arrow}</button><div class="inspector-legend"><div><i class="legend-box legend-highway"></i> HIGHWAY / PARKWAY</div><div><i class="legend-box legend-secondary"></i> LOCAL / RURAL ROUTE</div><div><i class="legend-box legend-river"></i> FRESH + TIDAL WATER</div><div><i class="legend-box legend-reserve"></i> FUTURE DISTRICT LIMIT</div></div></aside></div>
+      <aside class="atlas-inspector"><div class="inspector-index">SURVEY INDEX / 001—012</div><h3>Land first.<br><em>Everything follows.</em></h3><p>Downtown, the Industrial Flats and the Hillside are built and streaming. The other nine district footprints remain reserved for future work.</p><div class="atlas-hover" id="atlas-hover">HOVER A FOOTPRINT TO INSPECT</div><div class="inspector-divider"></div><div class="inspector-selected" id="inspector-selected"></div><button class="inspect-action" id="atlas-explore">EXPLORE THIS AREA ${icon.arrow}</button><div class="inspector-legend"><div><i class="legend-box legend-highway"></i> HIGHWAY / PARKWAY</div><div><i class="legend-box legend-secondary"></i> LOCAL / RURAL ROUTE</div><div><i class="legend-box legend-river"></i> FRESH + TIDAL WATER</div><div><i class="legend-box legend-reserve"></i> FUTURE DISTRICT LIMIT</div></div></aside></div>
     </div>
   </main>
 `;
@@ -83,7 +83,7 @@ const groupLabel=(district:District)=>district.kind==='landscape'?'LANDSCAPE':di
 DISTRICTS.forEach((district,i)=>{
   const button=document.createElement('button');button.type='button';
   button.className='district-row';button.dataset.district=district.id;
-  const state=district.id==='downtown'||district.id==='industrial'?'BUILT':'RESERVED';
+  const state=isBuiltDistrictId(district.id)?'BUILT':'RESERVED';
   button.setAttribute('aria-label',`${district.name} — ${state.toLowerCase()} district`);
   button.innerHTML=`<span class="district-no">${String(i+1).padStart(2,'0')}</span><span class="district-color" style="--district-color:${district.color}"></span><span class="district-name">${district.name}<small>${district.subtitle}</small></span><span class="district-state">${state}</span><span class="district-arrow">↗</span>`;
   button.addEventListener('click',()=>selectDistrict(district.id,true));
@@ -100,7 +100,7 @@ let navigationOn=false;
 function districtDetails(district:District,full=false){
   const area=(polygonArea(district.polygon)/1_000_000).toFixed(1);
   const elevation=Math.max(0,Math.round(terrainHeight(district.focus.x,district.focus.z)));
-  const built=district.id==='downtown'||district.id==='industrial';
+  const built=isBuiltDistrictId(district.id);
   const state=built?'BUILT':'RESERVED';
   if(full)return `<div class="inspector-district-type">${groupLabel(district)} <span>· ${state}</span></div><h4>${district.name}</h4><div class="inspector-subtitle">${district.subtitle}</div><dl><div><dt>${built?'CITY AREA':'LAND RESERVED'}</dt><dd>${area} km²</dd></div><div><dt>FOCUS ELEVATION</dt><dd>${elevation} m</dd></div><div><dt>ROAD ACCESS</dt><dd class="dd-access">${district.access}</dd></div></dl>`;
   return `<div class="selected-card-top"><span><i></i> ${built?'ACTIVE DISTRICT':'SELECTED LOCATION'}</span><span>${String(DISTRICTS.indexOf(district)+1).padStart(2,'0')} / 12</span></div><div class="selected-card-name"><div><small>${groupLabel(district)} · ${state}</small><h2>${district.name}</h2><p>${district.subtitle}</p></div><div class="card-height"><strong>${elevation}<small>M</small></strong><span>ELEV.</span></div></div><div class="selected-card-bottom"><div><span>${built?'CITY FOOTPRINT':'RESERVED AREA'}</span><strong>${area} KM²</strong></div><div><span>ROAD ACCESS</span><strong>${district.access}</strong></div></div><button class="card-focus" id="focus-selected">FOCUS LOCATION ${icon.arrow}</button>`;
