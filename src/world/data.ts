@@ -137,7 +137,7 @@ export const DISTRICTS: readonly District[] = [
  * Districts that are actually modelled and streamed, as opposed to reserved footprints.
  * Adding a district here is the one place the UI learns a reservation has been built.
  */
-export const BUILT_DISTRICT_IDS: readonly string[] = ['downtown', 'industrial', 'wealthy'];
+export const BUILT_DISTRICT_IDS: readonly string[] = ['downtown', 'industrial', 'wealthy', 'residential'];
 
 export const isBuiltDistrictId = (id: string): boolean => BUILT_DISTRICT_IDS.includes(id);
 

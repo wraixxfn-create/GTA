@@ -54,7 +54,7 @@ $('#app').innerHTML=`
       </div>
       <div class="sidebar-section-heading"><span>DISTRICT STATUS</span><span class="heading-count">${String(BUILT_DISTRICT_IDS.length).padStart(2,'0')} BUILT / ${String(DISTRICTS.length-BUILT_DISTRICT_IDS.length).padStart(2,'0')} RESERVED</span></div>
       <div id="district-list" class="district-list" role="list" aria-label="Built and reserved districts"></div>
-      <div class="sidebar-note"><span class="note-symbol">◌</span><span>Downtown, the Industrial Flats and the Hillside are built and streaming.<br>The other 9 districts remain reserved.</span></div>
+      <div class="sidebar-note"><span class="note-symbol">◌</span><span>Downtown, the Industrial Flats, the Hillside and the Residential Valley are built and streaming.<br>The other 8 districts remain reserved.</span></div>
     </aside>
 
     <div class="right-panel">
@@ -73,7 +73,7 @@ $('#app').innerHTML=`
     <div id="atlas-overlay" class="atlas-overlay" role="dialog" aria-modal="true" aria-labelledby="atlas-heading" aria-hidden="true">
       <header class="atlas-topbar"><div><div class="atlas-kicker">MORROW REACH <span>/</span> DISTRICT SURVEY 02</div><h2 id="atlas-heading">The regional atlas<span>.</span></h2></div><button id="close-atlas" class="atlas-close" aria-label="Close atlas">${icon.close}<span>CLOSE MAP</span><kbd>ESC</kbd></button></header>
       <div class="atlas-body"><div class="atlas-map-frame"><div class="atlas-map-corner atlas-map-corner--tl"></div><div class="atlas-map-corner atlas-map-corner--tr"></div><div class="atlas-map-corner atlas-map-corner--bl"></div><div class="atlas-map-corner atlas-map-corner--br"></div><canvas id="atlas-map" aria-label="Click any reserved footprint to inspect and focus that location"></canvas><div class="atlas-compass">N <span>↑</span></div><div class="atlas-map-caption"><span>COASTLINE · RELIEF · TRANSPORT</span><span>18 KM E–W / 14 KM N–S</span></div></div>
-      <aside class="atlas-inspector"><div class="inspector-index">SURVEY INDEX / 001—012</div><h3>Land first.<br><em>Everything follows.</em></h3><p>Downtown, the Industrial Flats and the Hillside are built and streaming. The other nine district footprints remain reserved for future work.</p><div class="atlas-hover" id="atlas-hover">HOVER A FOOTPRINT TO INSPECT</div><div class="inspector-divider"></div><div class="inspector-selected" id="inspector-selected"></div><button class="inspect-action" id="atlas-explore">EXPLORE THIS AREA ${icon.arrow}</button><div class="inspector-legend"><div><i class="legend-box legend-highway"></i> HIGHWAY / PARKWAY</div><div><i class="legend-box legend-secondary"></i> LOCAL / RURAL ROUTE</div><div><i class="legend-box legend-river"></i> FRESH + TIDAL WATER</div><div><i class="legend-box legend-reserve"></i> FUTURE DISTRICT LIMIT</div></div></aside></div>
+      <aside class="atlas-inspector"><div class="inspector-index">SURVEY INDEX / 001—012</div><h3>Land first.<br><em>Everything follows.</em></h3><p>Downtown, the Industrial Flats, the Hillside and the Residential Valley are built and streaming. The other eight district footprints remain reserved for future work.</p><div class="atlas-hover" id="atlas-hover">HOVER A FOOTPRINT TO INSPECT</div><div class="inspector-divider"></div><div class="inspector-selected" id="inspector-selected"></div><button class="inspect-action" id="atlas-explore">EXPLORE THIS AREA ${icon.arrow}</button><div class="inspector-legend"><div><i class="legend-box legend-highway"></i> HIGHWAY / PARKWAY</div><div><i class="legend-box legend-secondary"></i> LOCAL / RURAL ROUTE</div><div><i class="legend-box legend-river"></i> FRESH + TIDAL WATER</div><div><i class="legend-box legend-reserve"></i> FUTURE DISTRICT LIMIT</div></div></aside></div>
     </div>
   </main>
 `;
@@ -120,7 +120,7 @@ scene.onDistrictClick=id=>selectDistrict(id,true);
 scene.onStats=stats=>{
   $('#sector-status').textContent=`${String(stats.loaded).padStart(2,'0')} / ${String(stats.wanted).padStart(2,'0')} SECTORS ACTIVE`;
   $('#coordinate-status').textContent=`X ${formatKm(stats.coordinate.x)} / Z ${formatKm(stats.coordinate.z)} KM · ${Math.round(stats.altitude)} M ASL`;
-  $('#city-status').textContent=`DOWNTOWN ${String(stats.downtown?.chunks??0).padStart(2,'0')} · FLATS ${String(stats.industrial?.chunks??0).padStart(2,'0')} TILES`;
+  $('#city-status').textContent=`DOWNTOWN ${String(stats.downtown?.chunks??0).padStart(2,'0')} · FLATS ${String(stats.industrial?.chunks??0).padStart(2,'0')} · VALLEY ${String(stats.residential?.chunks??0).padStart(2,'0')} TILES`;
   atlas.setFocus(stats.coordinate,stats.distance);
 };
 scene.onMove=point=>atlas.setFocus(point,scene.getZoom());
