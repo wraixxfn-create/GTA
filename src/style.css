@@ -32,3 +32,17 @@
 .tool-button.is-on small{color:#c8e2ae}
 #city-status{color:#c7d5bd}
 @media(max-width:780px){.district-state,#city-status{display:none}}
+
+/* ── Map-checkpoint readout: what the generators actually produced ────────────── */
+.scene-debug{position:absolute;z-index:5;left:330px;bottom:108px;width:246px;background:rgba(10,34,41,.90);border:1px solid rgba(237,236,208,.20);border-radius:5px;backdrop-filter:blur(14px);box-shadow:0 16px 46px rgba(9,32,38,.28);overflow:hidden}
+.scene-debug__head{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid rgba(235,229,200,.14);font:9px 'DM Mono',monospace;letter-spacing:.09em;color:#e7d6ae;cursor:pointer;user-select:none}
+.scene-debug__head svg{width:14px;height:14px;color:#d6bc91}
+.scene-debug__head span{flex:1}
+.scene-debug__head kbd{font:8px 'DM Mono',monospace;border:1px solid rgba(227,229,215,.27);border-radius:2px;padding:1px 4px;color:#adbfba}
+.scene-debug__body{padding:9px 11px 11px;display:grid;grid-template-columns:1fr;gap:4px;max-height:238px;overflow:auto;scrollbar-width:thin;scrollbar-color:#6b8b67 transparent}
+.scene-debug__body>div{display:flex;justify-content:space-between;gap:10px;font:8px 'DM Mono',monospace;letter-spacing:.03em;color:#93a8a1}
+.scene-debug__body>div b{font:500 9px 'DM Mono',monospace;color:#eae2c8;font-weight:500}
+.scene-debug.is-collapsed .scene-debug__body{display:none}
+.scene-debug.is-collapsed{width:auto}
+@media(max-width:1160px){.scene-debug{left:321px;width:219px}}
+@media(max-width:780px){.scene-debug{left:13px;bottom:285px;width:172px}.scene-debug__body{max-height:132px}}

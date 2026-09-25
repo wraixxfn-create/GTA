@@ -84,6 +84,10 @@ export class IndustrialLayer {
   readonly navigation = new THREE.Group();
   stats: ChunkStats = { chunks: 0, detailed: 0, triangles: 0, drawCalls: 0, buildMs: 0, disposed: 0 };
   private readonly chunks = new Map<string, Chunk>();
+  /** Tiles inside a district's bounding box that hold nothing. Without this memo the
+   * three-builds-per-frame budget is spent forever re-testing the same empty tiles,
+   * which stalls the whole district whenever the nearest tiles are empty. */
+  private readonly empty = new Map<string, 0 | 1 | 2 | 3>();
   private readonly wanted = new Map<string, { id: string; lod: 0 | 1 | 2 | 3; bounds: Bounds; distance: number }>();
   private readonly fleet = new Map<VehicleKind, THREE.InstancedMesh>();
   private lastCheck = 0;
@@ -206,13 +210,14 @@ export class IndustrialLayer {
         this.group.remove(chunk.group);
         chunk.dispose();
         this.chunks.delete(id);
+        this.empty.delete(id);
         disposed++;
       }
     }
     this.stats.disposed = disposed;
 
     const queue = [...this.wanted.values()]
-      .filter(w => !this.chunks.has(w.id))
+      .filter(w => !this.chunks.has(w.id) && this.empty.get(w.id) !== w.lod)
       .sort((a, b) => a.distance - b.distance);
     const start = performance.now();
     let created = 0;
@@ -221,6 +226,8 @@ export class IndustrialLayer {
       if (chunk) {
         this.chunks.set(want.id, chunk);
         this.group.add(chunk.group);
+      } else {
+        this.empty.set(want.id, want.lod);
       }
       created++;
       if (performance.now() - start > budgetMs || created >= 3) break;

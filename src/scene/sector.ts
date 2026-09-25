@@ -221,7 +221,15 @@ function addForest(group:THREE.Group,ix:number,iz:number) {
   group.add(trunks,canopy);
 }
 
-export type ActiveSector = {group:THREE.Group;dispose:()=>void};
+export type ActiveSector = {group:THREE.Group;triangles:number;calls:number;dispose:()=>void};
+
+function countTriangles(geometry:THREE.BufferGeometry):number {
+  const position=geometry.getAttribute('position');
+  if(!position)return 0;
+  const index=geometry.getIndex();
+  return index?index.count/3:position.count/3;
+}
+
 export function buildSector(ix:number,iz:number):ActiveSector {
   const group=new THREE.Group();group.name=`Sector ${ix}:${iz}`;
   const x=WORLD.minX+ix*WORLD.sectorSize,z=WORLD.minZ+iz*WORLD.sectorSize;
@@ -230,7 +238,12 @@ export function buildSector(ix:number,iz:number):ActiveSector {
   const owned=[terrain.geometry];
   addRoads(group,ix,iz,owned);
   addForest(group,ix,iz);
-  return {group,dispose:()=>{
+  let triangles=0;
+  for(const child of group.children) {
+    if(child instanceof THREE.InstancedMesh) triangles+=countTriangles(child.geometry)*child.count;
+    else if(child instanceof THREE.Mesh) triangles+=countTriangles(child.geometry);
+  }
+  return {group,triangles,calls:group.children.length,dispose:()=>{
     for(const child of group.children)if(child instanceof THREE.InstancedMesh)child.dispose();
     for(const geo of owned)geo.dispose();
   }};
