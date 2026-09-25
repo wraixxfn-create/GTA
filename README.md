@@ -6,8 +6,9 @@ An original, fictional modern coastal region for a future open-world project. Th
 
 ```bash
 npm install
-npm run dev       # Vite dev server, bound to 0.0.0.0 → http://localhost:5173/
 npm start         # same as `npm run dev`
+
+npm run dev       # Vite dev server, bound to 0.0.0.0 → http://localhost:5173/
 npm run build     # TypeScript check + production build
 npm test          # geographic and streaming regression tests
 npm run verify:world  # printable whole-region audit
