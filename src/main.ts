@@ -7,7 +7,7 @@ import '@fontsource/dm-sans/latin-500.css';
 import '@fontsource/dm-sans/latin-600.css';
 import '@fontsource/dm-mono/latin-400.css';
 import '@fontsource/dm-mono/latin-500.css';
-import { DISTRICTS, isBuiltDistrictId, type District } from './world/data';
+import { BUILT_DISTRICT_IDS, DISTRICTS, isBuiltDistrictId, type District } from './world/data';
 import { polygonArea, terrainHeight } from './world/geometry';
 import { WorldScene } from './scene/WorldScene';
 import { Atlas } from './ui/atlas';
@@ -52,7 +52,7 @@ $('#app').innerHTML=`
         <div><strong>252</strong><span>STREAMING SECTORS</span></div>
         <div><strong>05</strong><span>MAJOR BRIDGES</span></div>
       </div>
-      <div class="sidebar-section-heading"><span>DISTRICT STATUS</span><span class="heading-count">02 BUILT / 10 RESERVED</span></div>
+      <div class="sidebar-section-heading"><span>DISTRICT STATUS</span><span class="heading-count">${String(BUILT_DISTRICT_IDS.length).padStart(2,'0')} BUILT / ${String(DISTRICTS.length-BUILT_DISTRICT_IDS.length).padStart(2,'0')} RESERVED</span></div>
       <div id="district-list" class="district-list" role="list" aria-label="Built and reserved districts"></div>
       <div class="sidebar-note"><span class="note-symbol">◌</span><span>Downtown, the Industrial Flats and the Hillside are built and streaming.<br>The other 9 districts remain reserved.</span></div>
     </aside>
