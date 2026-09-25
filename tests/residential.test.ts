@@ -213,7 +213,8 @@ test('the streaming layer builds, moves and disposes tiles for real', () => {
   flyTo(new THREE.Vector3(3400, 40, -2200), 24);
   assert.ok(layer.stats.chunks < nearCount, `the streamer sheds tiles as the camera leaves (${nearCount} → ${layer.stats.chunks})`);
   assert.equal(layer.stats.detailed, 0, 'no detailed tiles survive a flight away from the valley');
-  flyTo(new THREE.Vector3(6000, 40, -5000), 24);
+  // Well outside the 7 km silhouette radius the valley must release everything.
+  flyTo(new THREE.Vector3(9000, 40, -8000), 24);
   assert.equal(layer.stats.chunks, 0, `past the silhouette range every tile is released (got ${layer.stats.chunks})`);
   assert.ok(released > 0, `tiles were disposed on the way out (${released} released)`);
 
