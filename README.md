@@ -6,11 +6,16 @@ An original, fictional modern coastal region for a future open-world project. Th
 
 ```bash
 npm install
-npm run dev       # Vite, bound to 0.0.0.0
+npm run dev       # Vite dev server, bound to 0.0.0.0 → http://localhost:5173/
+npm start         # same as `npm run dev`
 npm run build     # TypeScript check + production build
 npm test          # geographic and streaming regression tests
 npm run verify:world  # printable whole-region audit
 ```
+
+`npm install` is required first — the dev server cannot start without `node_modules/`.
+After `npm run dev`, the root page is http://localhost:5173/ (Vite's default port; the server
+prints the URL it actually bound if 5173 is taken).
 
 The browser opens to a streamed 3D terrain view. **Open Atlas** (`M`) shows the whole region from above, with terrain relief, coastline, water, roads, and future district limits. Click a location in the sidebar or atlas to inspect/focus it.
 
