@@ -52,9 +52,9 @@ $('#app').innerHTML=`
         <div><strong>252</strong><span>STREAMING SECTORS</span></div>
         <div><strong>05</strong><span>MAJOR BRIDGES</span></div>
       </div>
-      <div class="sidebar-section-heading"><span>DISTRICT STATUS</span><span class="heading-count">01 BUILT / 11 RESERVED</span></div>
+      <div class="sidebar-section-heading"><span>DISTRICT STATUS</span><span class="heading-count">02 BUILT / 10 RESERVED</span></div>
       <div id="district-list" class="district-list" role="list" aria-label="Built and reserved districts"></div>
-      <div class="sidebar-note"><span class="note-symbol">◌</span><span>Downtown is built and streaming.<br>The other 11 districts remain reserved.</span></div>
+      <div class="sidebar-note"><span class="note-symbol">◌</span><span>Downtown and the Industrial Flats are built and streaming.<br>The other 10 districts remain reserved.</span></div>
     </aside>
 
     <div class="right-panel">
@@ -83,7 +83,7 @@ const groupLabel=(district:District)=>district.kind==='landscape'?'LANDSCAPE':di
 DISTRICTS.forEach((district,i)=>{
   const button=document.createElement('button');button.type='button';
   button.className='district-row';button.dataset.district=district.id;
-  const state=district.id==='downtown'?'BUILT':'RESERVED';
+  const state=district.id==='downtown'||district.id==='industrial'?'BUILT':'RESERVED';
   button.setAttribute('aria-label',`${district.name} — ${state.toLowerCase()} district`);
   button.innerHTML=`<span class="district-no">${String(i+1).padStart(2,'0')}</span><span class="district-color" style="--district-color:${district.color}"></span><span class="district-name">${district.name}<small>${district.subtitle}</small></span><span class="district-state">${state}</span><span class="district-arrow">↗</span>`;
   button.addEventListener('click',()=>selectDistrict(district.id,true));
@@ -100,7 +100,7 @@ let navigationOn=false;
 function districtDetails(district:District,full=false){
   const area=(polygonArea(district.polygon)/1_000_000).toFixed(1);
   const elevation=Math.max(0,Math.round(terrainHeight(district.focus.x,district.focus.z)));
-  const built=district.id==='downtown';
+  const built=district.id==='downtown'||district.id==='industrial';
   const state=built?'BUILT':'RESERVED';
   if(full)return `<div class="inspector-district-type">${groupLabel(district)} <span>· ${state}</span></div><h4>${district.name}</h4><div class="inspector-subtitle">${district.subtitle}</div><dl><div><dt>${built?'CITY AREA':'LAND RESERVED'}</dt><dd>${area} km²</dd></div><div><dt>FOCUS ELEVATION</dt><dd>${elevation} m</dd></div><div><dt>ROAD ACCESS</dt><dd class="dd-access">${district.access}</dd></div></dl>`;
   return `<div class="selected-card-top"><span><i></i> ${built?'ACTIVE DISTRICT':'SELECTED LOCATION'}</span><span>${String(DISTRICTS.indexOf(district)+1).padStart(2,'0')} / 12</span></div><div class="selected-card-name"><div><small>${groupLabel(district)} · ${state}</small><h2>${district.name}</h2><p>${district.subtitle}</p></div><div class="card-height"><strong>${elevation}<small>M</small></strong><span>ELEV.</span></div></div><div class="selected-card-bottom"><div><span>${built?'CITY FOOTPRINT':'RESERVED AREA'}</span><strong>${area} KM²</strong></div><div><span>ROAD ACCESS</span><strong>${district.access}</strong></div></div><button class="card-focus" id="focus-selected">FOCUS LOCATION ${icon.arrow}</button>`;
@@ -120,7 +120,7 @@ scene.onDistrictClick=id=>selectDistrict(id,true);
 scene.onStats=stats=>{
   $('#sector-status').textContent=`${String(stats.loaded).padStart(2,'0')} / ${String(stats.wanted).padStart(2,'0')} SECTORS ACTIVE`;
   $('#coordinate-status').textContent=`X ${formatKm(stats.coordinate.x)} / Z ${formatKm(stats.coordinate.z)} KM · ${Math.round(stats.altitude)} M ASL`;
-  $('#city-status').textContent=`DOWNTOWN ${String(stats.downtown?.chunks??0).padStart(2,'0')} TILES`;
+  $('#city-status').textContent=`DOWNTOWN ${String(stats.downtown?.chunks??0).padStart(2,'0')} · FLATS ${String(stats.industrial?.chunks??0).padStart(2,'0')} TILES`;
   atlas.setFocus(stats.coordinate,stats.distance);
 };
 scene.onMove=point=>atlas.setFocus(point,scene.getZoom());

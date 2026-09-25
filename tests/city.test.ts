@@ -6,7 +6,7 @@ import { LANDMARKS } from '../src/city/identity';
 import { auditCity, citySummary } from '../src/city/verification';
 import { LANES, LANE_LINKS, PED_NODES, BUS_STOPS, CROSSINGS, PARKING_BAYS } from '../src/city/traffic';
 
-test('downtown is the only constructed district and retains its authored footprint', () => {
+test('downtown retains its authored footprint and landmark roster', () => {
   assert.equal(CITY_POLYGON.length, 6);
   assert.equal(CITY.landmarks.length, 19);
   assert.ok(ALL_BUILDINGS.length > 3_000, 'downtown should read as a dense urban core');

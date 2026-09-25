@@ -16,8 +16,8 @@ Areas are polygon reservations, not finished districts. Boundary sectors may car
 
 | Reservation | Area | Terrain and reason for placement |
 | --- | ---: | --- |
-| Downtown | 6.2 km² | Connected, low central city floor; two radial approaches and a belt link. |
-| Industrial | 4.8 km² | Level riverward flats with direct port and eastern crossing access. |
+| Downtown | 6.2 km² | **Constructed** (`src/city`): low central city floor; two radial approaches and a belt link. |
+| Industrial | 4.8 km² | **Constructed** (`src/industrial`): level riverward flats with direct port and eastern crossing access; see [INDUSTRIAL.md](INDUSTRIAL.md). |
 | Hillside / wealthy | 6.6 km² | Sheltered rolling bluff west of the core, above the exposed beaches. |
 | Residential | 7.3 km² | Broad central valley between the foothills and downtown. |
 | Suburbs | 8.2 km² | Western outer lowlands between lake country and the metropolitan core. |

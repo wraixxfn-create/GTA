@@ -209,14 +209,21 @@ export function isReservedBuiltArea(x: number, z: number): boolean {
 }
 
 /**
- * The one district that is actually built. Regional routes are drawn by the streaming
- * sectors everywhere else; inside downtown the district owns its own streets (the same
- * alignments, carried through as legacy streets), so the foundation ribbons stop at the
- * city limit instead of running under the graded pad.
+ * The districts that are actually built. Regional routes are drawn by the streaming
+ * sectors everywhere else; inside a constructed district the district owns its own
+ * streets (the same alignments, carried through as legacy streets), so the foundation
+ * ribbons stop at the district limit instead of running under the graded pad.
  */
 const CONSTRUCTED_POLYGON = DISTRICTS.find(d => d.id === 'downtown')!.polygon;
+const CONSTRUCTED_INDUSTRIAL_POLYGON = DISTRICTS.find(d => d.id === 'industrial')!.polygon;
 export function isConstructedDowntown(x: number, z: number): boolean {
   return pointInPolygon(x, z, CONSTRUCTED_POLYGON);
+}
+export function isConstructedIndustrial(x: number, z: number): boolean {
+  return pointInPolygon(x, z, CONSTRUCTED_INDUSTRIAL_POLYGON);
+}
+export function isConstructedDistrict(x: number, z: number): boolean {
+  return isConstructedDowntown(x, z) || isConstructedIndustrial(x, z);
 }
 
 export function marshInfluence(x: number, z: number): number {
@@ -244,6 +251,29 @@ function CITY_FLOOR_DISTANCE(x: number, z: number): number {
   return pointInPolygon(x, z, DOWNTOWN_POLYGON) ? nearest : -nearest;
 }
 
+/**
+ * Grading weight of the constructed industrial district. The riverward flats are a
+ * working pad: every noise octave of relief is graded away inside the footprint and
+ * blended back over 420 m at the limit, leaving the long-wavelength regional tilt
+ * (the plain falls from ~41 m in the north to the port plateau in the south, and the
+ * river valley terrace keeps its own level on the east flank). Regional roads that
+ * cross the district re-sample this surface, so gateways meet their continuations
+ * without a step and never exceed the road grade audit.
+ */
+export function industrialFloorWeight(x: number, z: number): number {
+  const d = INDUSTRIAL_FLOOR_DISTANCE(x, z);
+  return smoothstep(-140, 280, d);
+}
+const INDUSTRIAL_POLYGON = DISTRICTS.find(d => d.id === 'industrial')!.polygon;
+function INDUSTRIAL_FLOOR_DISTANCE(x: number, z: number): number {
+  let nearest = Infinity;
+  for (let i = 0; i < INDUSTRIAL_POLYGON.length; i++) {
+    const a = INDUSTRIAL_POLYGON[i], b = INDUSTRIAL_POLYGON[(i + 1) % INDUSTRIAL_POLYGON.length];
+    nearest = Math.min(nearest, segmentDistance(x, z, a, b).distance);
+  }
+  return pointInPolygon(x, z, INDUSTRIAL_POLYGON) ? nearest : -nearest;
+}
+
 export type TerrainSample = { height: number; coast: number; river: RiverProximity; lake: number; marsh: number };
 /** Stable world-space height function shared by every sector, waterbody, road and atlas. */
 export function terrainSample(x: number, z: number): TerrainSample {
@@ -255,10 +285,13 @@ export function terrainSample(x: number, z: number): TerrainSample {
 
   const inland=smoothstep(0,130,coast);
   let h=(6 + 35*(1-Math.exp(-coast/670)))*inland;
-  // Inside the built downtown the fine relief is graded away (see cityFloorWeight).
+  // Inside the built downtown the fine relief is graded away (see cityFloorWeight);
+  // inside the built industrial district every noise octave is graded away, leaving
+  // only the regional tilt and the river terrace (see industrialFloorWeight).
   const cityFloor=cityFloorWeight(x,z), fineRelief=1-.94*cityFloor;
-  h+=inland*(12*(noise(x/1330,z/1330)-.5)+fineRelief*(6*(noise(x/370,z/370)-.5)+1.8*(noise(x/105,z/105)-.5)));
-  h+=.85*cityFloor;
+  const indFloor=industrialFloorWeight(x,z), gradedRelief=1-.96*indFloor;
+  h+=inland*(gradedRelief*12*(noise(x/1330,z/1330)-.5)+fineRelief*gradedRelief*(6*(noise(x/370,z/370)-.5)+1.8*(noise(x/105,z/105)-.5)));
+  h+=.85*cityFloor+.7*indFloor;
   h+=inland*(
     565*gaussian(x,z,-2960,-5230,1180,950) +
     625*gaussian(x,z,-1260,-5750,990,760) +
