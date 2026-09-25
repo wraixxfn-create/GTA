@@ -10,7 +10,8 @@
     "verify:world": "tsx scripts/verify-world.ts",
     "verify:city": "tsx scripts/verify-city.ts",
     "verify:industrial": "tsx scripts/verify-industrial.ts",
-    "verify:wealthy": "tsx scripts/verify-wealthy.ts"
+    "verify:wealthy": "tsx scripts/verify-wealthy.ts",
+    "verify:residential": "tsx scripts/verify-residential.ts"
   },
   "dependencies": {
     "@fontsource/dm-mono": "^5.3.0",

@@ -217,6 +217,7 @@ export function isReservedBuiltArea(x: number, z: number): boolean {
 const CONSTRUCTED_POLYGON = DISTRICTS.find(d => d.id === 'downtown')!.polygon;
 const CONSTRUCTED_INDUSTRIAL_POLYGON = DISTRICTS.find(d => d.id === 'industrial')!.polygon;
 const CONSTRUCTED_WEALTHY_POLYGON = DISTRICTS.find(d => d.id === 'wealthy')!.polygon;
+const CONSTRUCTED_RESIDENTIAL_POLYGON = DISTRICTS.find(d => d.id === 'residential')!.polygon;
 export function isConstructedDowntown(x: number, z: number): boolean {
   return pointInPolygon(x, z, CONSTRUCTED_POLYGON);
 }
@@ -231,8 +232,16 @@ export function isConstructedIndustrial(x: number, z: number): boolean {
 export function isConstructedWealthy(x: number, z: number): boolean {
   return pointInPolygon(x, z, CONSTRUCTED_WEALTHY_POLYGON);
 }
+/**
+ * The residential valley is graded like downtown (see `residentialFloorWeight`) and owns
+ * its own streets — the same regional alignments, carried through as legacy streets — so
+ * the foundation ribbons stop at the district limit instead of running under the pad.
+ */
+export function isConstructedResidential(x: number, z: number): boolean {
+  return pointInPolygon(x, z, CONSTRUCTED_RESIDENTIAL_POLYGON);
+}
 export function isConstructedDistrict(x: number, z: number): boolean {
-  return isConstructedDowntown(x, z) || isConstructedIndustrial(x, z) || isConstructedWealthy(x, z);
+  return isConstructedDowntown(x, z) || isConstructedIndustrial(x, z) || isConstructedWealthy(x, z) || isConstructedResidential(x, z);
 }
 
 export function marshInfluence(x: number, z: number): number {
@@ -283,6 +292,28 @@ function INDUSTRIAL_FLOOR_DISTANCE(x: number, z: number): number {
   return pointInPolygon(x, z, INDUSTRIAL_POLYGON) ? nearest : -nearest;
 }
 
+/**
+ * Grading weight of the constructed residential district. The valley floor is graded
+ * gently for its street grid — high-frequency relief is removed inside the footprint and
+ * blended back over 260 m at the limit, keeping the long-wavelength tilt of the valley
+ * (it falls from the mountain shoulder towards the city floor). Regional routes that
+ * cross the district re-sample this surface, so gates meet their continuations without a
+ * step and never exceed the road grade audit.
+ */
+export function residentialFloorWeight(x: number, z: number): number {
+  const d = RESIDENTIAL_FLOOR_DISTANCE(x, z);
+  return smoothstep(-120, 240, d);
+}
+const RESIDENTIAL_POLYGON = DISTRICTS.find(d => d.id === 'residential')!.polygon;
+function RESIDENTIAL_FLOOR_DISTANCE(x: number, z: number): number {
+  let nearest = Infinity;
+  for (let i = 0; i < RESIDENTIAL_POLYGON.length; i++) {
+    const a = RESIDENTIAL_POLYGON[i], b = RESIDENTIAL_POLYGON[(i + 1) % RESIDENTIAL_POLYGON.length];
+    nearest = Math.min(nearest, segmentDistance(x, z, a, b).distance);
+  }
+  return pointInPolygon(x, z, RESIDENTIAL_POLYGON) ? nearest : -nearest;
+}
+
 export type TerrainSample = { height: number; coast: number; river: RiverProximity; lake: number; marsh: number };
 /** Stable world-space height function shared by every sector, waterbody, road and atlas. */
 export function terrainSample(x: number, z: number): TerrainSample {
@@ -299,8 +330,9 @@ export function terrainSample(x: number, z: number): TerrainSample {
   // only the regional tilt and the river terrace (see industrialFloorWeight).
   const cityFloor=cityFloorWeight(x,z), fineRelief=1-.94*cityFloor;
   const indFloor=industrialFloorWeight(x,z), gradedRelief=1-.96*indFloor;
-  h+=inland*(gradedRelief*12*(noise(x/1330,z/1330)-.5)+fineRelief*gradedRelief*(6*(noise(x/370,z/370)-.5)+1.8*(noise(x/105,z/105)-.5)));
-  h+=.85*cityFloor+.7*indFloor;
+  const resFloor=residentialFloorWeight(x,z), valleyRelief=1-.85*resFloor;
+  h+=inland*(gradedRelief*valleyRelief*12*(noise(x/1330,z/1330)-.5)+fineRelief*gradedRelief*valleyRelief*(6*(noise(x/370,z/370)-.5)+1.8*(noise(x/105,z/105)-.5)));
+  h+=.85*cityFloor+.7*indFloor+.6*resFloor;
   h+=inland*(
     565*gaussian(x,z,-2960,-5230,1180,950) +
     625*gaussian(x,z,-1260,-5750,990,760) +

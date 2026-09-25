@@ -9,8 +9,9 @@ import { buildSector, createDistantTerrain, type ActiveSector } from './sector';
 import { CityLayer, type ChunkStats } from './CityLayer';
 import { IndustrialLayer } from './IndustrialLayer';
 import { WealthyLayer } from './WealthyLayer';
+import { ResidentialLayer } from './ResidentialLayer';
 
-export type SceneStats = {loaded:number;wanted:number;coordinate:Point;altitude:number;distance:number;downtown?:ChunkStats;industrial?:ChunkStats;wealthy?:ChunkStats};
+export type SceneStats = {loaded:number;wanted:number;coordinate:Point;altitude:number;distance:number;downtown?:ChunkStats;industrial?:ChunkStats;wealthy?:ChunkStats;residential?:ChunkStats};
 type Flight = {start:number;duration:number;fromTarget:THREE.Vector3;toTarget:THREE.Vector3;fromCamera:THREE.Vector3;toCamera:THREE.Vector3};
 
 function makeWaterMesh():THREE.Mesh {
@@ -104,6 +105,7 @@ export class WorldScene {
   readonly city=new CityLayer();
   readonly industrial=new IndustrialLayer();
   readonly wealthy=new WealthyLayer();
+  readonly residential=new ResidentialLayer();
   private readonly active=new Map<string,ActiveSector>();
   private readonly boundaryGroup=new THREE.Group();
   private readonly boundaryLines=new Map<string,THREE.Line>();
@@ -159,6 +161,7 @@ export class WorldScene {
     this.scene.add(this.city.group);
     this.scene.add(this.industrial.group);
     this.scene.add(this.wealthy.group);
+    this.scene.add(this.residential.group);
     for(const district of DISTRICTS) {
       const line=makeBoundary(district);this.boundaryGroup.add(line);this.boundaryLines.set(district.id,line);
       const label=document.createElement('button');
@@ -212,8 +215,8 @@ export class WorldScene {
     this.labelLayer.classList.toggle('is-hidden',!visible);
   }
   getBoundaries(){return this.boundariesVisible;}
-  setNavigation(visible:boolean){this.city.setNavigation(visible);this.industrial.setNavigation(visible);this.wealthy.setNavigation(visible);}
-  getNavigation(){return this.city.getNavigation()||this.industrial.getNavigation()||this.wealthy.getNavigation();}
+  setNavigation(visible:boolean){this.city.setNavigation(visible);this.industrial.setNavigation(visible);this.wealthy.setNavigation(visible);this.residential.setNavigation(visible);}
+  getNavigation(){return this.city.getNavigation()||this.industrial.getNavigation()||this.wealthy.getNavigation()||this.residential.getNavigation();}
   setPaused(paused:boolean){this.paused=paused;}
 
   focus(point:Point,zoom=3200) {
@@ -270,7 +273,7 @@ export class WorldScene {
     }
     if(now-this.lastStats>380) {
       this.lastStats=now;
-      this.onStats?.({loaded:this.active.size,wanted:wanted.length,coordinate:{x:target.x,z:target.z},altitude:Math.max(0,terrainHeight(target.x,target.z)),distance,downtown:this.city.stats,industrial:this.industrial.stats,wealthy:this.wealthy.stats});
+      this.onStats?.({loaded:this.active.size,wanted:wanted.length,coordinate:{x:target.x,z:target.z},altitude:Math.max(0,terrainHeight(target.x,target.z)),distance,downtown:this.city.stats,industrial:this.industrial.stats,wealthy:this.wealthy.stats,residential:this.residential.stats});
     }
   }
 
@@ -282,6 +285,8 @@ export class WorldScene {
     this.industrial.updateTraffic(dt);
     this.wealthy.update(this.controls.target,now,7);
     this.wealthy.updateTraffic(dt);
+    this.residential.update(this.controls.target,now,7);
+    this.residential.updateTraffic(dt);
   }
 
   private updateLabels() {
