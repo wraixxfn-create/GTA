@@ -133,6 +133,14 @@ export const DISTRICTS: readonly District[] = [
   },
 ];
 
+/**
+ * Districts that are actually modelled and streamed, as opposed to reserved footprints.
+ * Adding a district here is the one place the UI learns a reservation has been built.
+ */
+export const BUILT_DISTRICT_IDS: readonly string[] = ['downtown', 'industrial', 'wealthy'];
+
+export const isBuiltDistrictId = (id: string): boolean => BUILT_DISTRICT_IDS.includes(id);
+
 export const NODES: Readonly<Record<string, Point>> = {
   ruralNorth:p(-6700,-4700), lakesideNW:p(-6810,-3320), westGate:p(-7320,-1050),
   westCoast:p(-7040,1660), beachWest:p(-4880,3370), beachEast:p(-3400,3710),
